@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binance WebSocket Tick Data Stream</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .controls {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 4px;
+        }
+        input, button {
+            padding: 8px 12px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        #dataDisplay {
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background: #fafafa;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .tick {
+            padding: 5px;
+            margin: 2px 0;
+            border-left: 3px solid #4CAF50;
+            background: white;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1976d2;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Binance WebSocket Tick Data Stream</h1>
+        <p>This tool streams live tick data from Binance. Use it to test the WebSocket connection or as a reference for the data format.</p>
+        
+        <div class="controls">
+            <label>Symbols (comma-separated):</label>
+            <input type="text" id="symbolsInput" value="btcusdt,ethusdt,bnbusdt" placeholder="btcusdt,ethusdt">
+            <button id="connectBtn" onclick="connect()">Connect</button>
+            <button id="disconnectBtn" onclick="disconnect()" disabled>Disconnect</button>
+            <button onclick="clearDisplay()">Clear</button>
+        </div>
+        
+        <div id="status" class="status disconnected">Disconnected</div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="tickCount">0</div>
+                <div class="stat-label">Total Ticks</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="symbolCount">0</div>
+                <div class="stat-label">Symbols</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="lastUpdate">-</div>
+                <div class="stat-label">Last Update</div>
+            </div>
+        </div>
+        
+        <h3>Live Tick Data:</h3>
+        <div id="dataDisplay"></div>
+    </div>
+
+    <script>
+        let ws = null;
+        let tickCount = 0;
+        let symbols = new Set();
+        let maxDisplayTicks = 100;
+
+        function connect() {
+            const symbolsInput = document.getElementById('symbolsInput').value;
+            const symbolList = symbolsInput.split(',').map(s => s.trim().toLowerCase()).filter(s => s);
+            
+            if (symbolList.length === 0) {
+                alert('Please enter at least one symbol');
+                return;
+            }
+
+            // Build stream URL
+            const streams = symbolList.map(s => `${s}@trade`).join('/');
+            const url = `wss://stream.binance.com:9443/stream?streams=${streams}`;
+
+            ws = new WebSocket(url);
+
+            ws.onopen = function() {
+                updateStatus('connected', 'Connected');
+                document.getElementById('connectBtn').disabled = true;
+                document.getElementById('disconnectBtn').disabled = false;
+                tickCount = 0;
+                symbols.clear();
+            };
+
+            ws.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                if (data.data) {
+                    handleTick(data.data);
+                }
+            };
+
+            ws.onerror = function(error) {
+                console.error('WebSocket error:', error);
+                updateStatus('disconnected', 'Error occurred');
+            };
+
+            ws.onclose = function() {
+                updateStatus('disconnected', 'Disconnected');
+                document.getElementById('connectBtn').disabled = false;
+                document.getElementById('disconnectBtn').disabled = true;
+            };
+        }
+
+        function disconnect() {
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+        }
+
+        function handleTick(trade) {
+            tickCount++;
+            const symbol = trade.s;
+            symbols.add(symbol);
+            
+            const timestamp = new Date(trade.T);
+            const price = parseFloat(trade.p);
+            const size = parseFloat(trade.q);
+            
+            // Update stats
+            document.getElementById('tickCount').textContent = tickCount;
+            document.getElementById('symbolCount').textContent = symbols.size;
+            document.getElementById('lastUpdate').textContent = timestamp.toLocaleTimeString();
+            
+            // Display tick
+            const display = document.getElementById('dataDisplay');
+            const tickDiv = document.createElement('div');
+            tickDiv.className = 'tick';
+            tickDiv.innerHTML = `
+                <strong>${symbol}</strong> | 
+                Price: $${price.toFixed(2)} | 
+                Size: ${size.toFixed(6)} | 
+                Time: ${timestamp.toLocaleString()}
+            `;
+            
+            display.insertBefore(tickDiv, display.firstChild);
+            
+            // Keep only last N ticks
+            while (display.children.length > maxDisplayTicks) {
+                display.removeChild(display.lastChild);
+            }
+            
+            // Log to console (for debugging)
+            console.log({
+                timestamp: trade.T,
+                symbol: symbol,
+                price: price,
+                size: size
+            });
+        }
+
+        function updateStatus(status, message) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = `status ${status}`;
+            statusDiv.textContent = message;
+        }
+
+        function clearDisplay() {
+            document.getElementById('dataDisplay').innerHTML = '';
+            tickCount = 0;
+            symbols.clear();
+            document.getElementById('tickCount').textContent = '0';
+            document.getElementById('symbolCount').textContent = '0';
+            document.getElementById('lastUpdate').textContent = '-';
+        }
+    </script>
+</body>
+</html>
+

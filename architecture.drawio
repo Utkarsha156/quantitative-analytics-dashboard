@@ -1,0 +1,123 @@
+<mxfile host="app.diagrams.net" modified="2024-01-01T00:00:00.000Z" agent="5.0" version="21.0.0" etag="drawio" type="device">
+  <diagram name="Architecture" id="architecture">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- External Data Source -->
+        <mxCell id="binance" value="Binance WebSocket&#xa;Stream" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="120" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- WebSocket Client -->
+        <mxCell id="ws_client" value="WebSocket Client&#xa;(binance_client.py)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="240" y="40" width="140" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- Data Processor -->
+        <mxCell id="processor" value="Data Processor&#xa;(data_processor.py)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="240" y="140" width="140" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- Storage Layer -->
+        <mxCell id="storage" value="Storage Layer&#xa;(storage.py)&#xa;SQLite Database" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="440" y="140" width="140" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- Sampler -->
+        <mxCell id="sampler" value="Data Sampler&#xa;(sampler.py)&#xa;Resampling Engine" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="240" y="240" width="140" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- Analytics Engine -->
+        <mxCell id="analytics" value="Analytics Engine&#xa;(analytics.py)&#xa;OLS, Z-Score, ADF,&#xa;Correlation, Kalman" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="640" y="140" width="160" height="100" as="geometry" />
+        </mxCell>
+        
+        <!-- Alert Manager -->
+        <mxCell id="alerts" value="Alert Manager&#xa;(alerts.py)&#xa;Rule-based Alerts" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="240" y="360" width="140" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- Backtest -->
+        <mxCell id="backtest" value="Backtest Engine&#xa;(backtest.py)&#xa;Mean Reversion" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="640" y="280" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- Frontend -->
+        <mxCell id="frontend" value="Streamlit Dashboard&#xa;(dashboard.py)&#xa;Interactive Visualizations" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="440" y="400" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- User -->
+        <mxCell id="user" value="User / Trader" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="500" y="540" width="40" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- Arrows -->
+        <mxCell id="arrow1" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="binance" target="ws_client">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="arrow2" value="Tick Data" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="ws_client" target="processor">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="arrow3" value="Store Ticks" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="processor" target="storage">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="arrow4" value="Resample" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="processor" target="sampler">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="arrow5" value="Store Bars" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;entryX=0;entryY=0.5;exitDx=10;" edge="1" parent="1" source="sampler" target="storage">
+          <mxGeometry x="-10" width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="380" y="280" as="sourcePoint" />
+            <mxPoint x="440" y="180" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="arrow6" value="Query Data" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="storage" target="analytics">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="arrow7" value="Check Alerts" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="processor" target="alerts">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="arrow8" value="Analytics Results" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="analytics" target="backtest">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="arrow9" value="Query &amp; Visualize" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="storage" target="frontend">
+          <mxGeometry x="-10" width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="510" y="220" as="sourcePoint" />
+            <mxPoint x="520" y="400" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="arrow10" value="Analytics Results" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;entryX=0.25;entryY=0;" edge="1" parent="1" source="analytics" target="frontend">
+          <mxGeometry x="-10" width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="720" y="240" as="sourcePoint" />
+            <mxPoint x="480" y="400" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="arrow11" value="User Interaction" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=0;entryX=0.5;entryY=1;" edge="1" parent="1" source="user" target="frontend">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="arrow12" value="Alert Notifications" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;entryX=0.25;entryY=0;" edge="1" parent="1" source="alerts" target="frontend">
+          <mxGeometry x="-10" width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="310" y="440" as="sourcePoint" />
+            <mxPoint x="480" y="400" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
+
